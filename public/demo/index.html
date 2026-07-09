@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101418">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StepCare">
+    <title>StepCare 라이브 데모 · 8채널 스마트 인솔</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <a class="back-link" href="../index.html" title="StepCare 홈으로">← 홈</a>
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <h1>StepCare Lab</h1>
+            <p id="connectionLabel">Demo stream · 8ch × 2</p>
+          </div>
+        </div>
+        <nav class="view-tabs" role="tablist" aria-label="화면 전환">
+          <button class="view-tab active" data-view="live">실시간 모니터링</button>
+          <button class="view-tab" data-view="report">케어 리포트</button>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-btn" id="installBtn" title="Install app" aria-label="Install app">⇩</button>
+          <button class="icon-btn" id="themeBtn" title="Switch theme" aria-label="Switch theme">◐</button>
+        </div>
+      </header>
+
+      <!-- ============ LIVE MONITORING VIEW ============ -->
+      <main class="dashboard" id="liveView">
+        <section class="control-strip" aria-label="Stream controls">
+          <div class="segmented" role="tablist" aria-label="Data source">
+            <button class="segment active" data-source="demo">Demo</button>
+            <button class="segment" data-source="socket">Socket</button>
+            <button class="segment" data-source="ble">BLE</button>
+          </div>
+          <button class="primary-btn" id="playBtn">Pause</button>
+          <label class="field compact">
+            <span>Speed</span>
+            <input id="speedRange" type="range" min="0.5" max="2" step="0.1" value="1">
+          </label>
+          <label class="field socket-field">
+            <span>WS</span>
+            <input id="socketUrl" type="url" value="ws://localhost:8787">
+          </label>
+          <button class="secondary-btn" id="connectBtn">Connect</button>
+        </section>
+
+        <section class="metric-grid" aria-label="Live metrics">
+          <article class="metric">
+            <span>Steps</span>
+            <strong id="stepCount">0</strong>
+          </article>
+          <article class="metric">
+            <span>Cadence</span>
+            <strong><b id="cadence">0</b><small>spm</small></strong>
+          </article>
+          <article class="metric">
+            <span>GCT</span>
+            <strong><b id="gct">0</b><small>ms</small></strong>
+          </article>
+          <article class="metric">
+            <span>Strike</span>
+            <strong id="strike">mid</strong>
+          </article>
+        </section>
+
+        <section class="live-area">
+          <article class="panel pressure-panel">
+            <div class="panel-head">
+              <h2>Pressure Map <small class="tag">8ch / foot</small></h2>
+              <span id="frameTime">0 ms</span>
+            </div>
+            <div class="canvas-pair">
+              <div class="foot-card">
+                <canvas id="leftFoot" width="360" height="620"></canvas>
+                <span>Left</span>
+              </div>
+              <div class="foot-card">
+                <canvas id="rightFoot" width="360" height="620"></canvas>
+                <span>Right</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel balance-panel">
+            <div class="panel-head">
+              <h2>Balance</h2>
+              <span id="totalForce">0 kgf</span>
+            </div>
+            <canvas id="balanceCanvas" width="520" height="360"></canvas>
+            <div class="balance-bars">
+              <div>
+                <span>Left / Right</span>
+                <div class="bar"><i id="lrBar"></i></div>
+                <strong id="lrText">50 / 50</strong>
+              </div>
+              <div>
+                <span>Front / Back</span>
+                <div class="bar"><i id="fbBar"></i></div>
+                <strong id="fbText">50 / 50</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <h2>Force Timeline</h2>
+              <span id="eventLabel">Ready</span>
+            </div>
+            <canvas id="timelineCanvas" width="1100" height="310"></canvas>
+          </article>
+
+          <article class="panel payload-panel">
+            <div class="panel-head">
+              <h2>Frame Payload</h2>
+              <button class="text-btn" id="copyBtn">Copy</button>
+            </div>
+            <pre id="payloadView"></pre>
+          </article>
+        </section>
+      </main>
+
+      <!-- ============ CARE REPORT VIEW (가상 데이터) ============ -->
+      <main class="dashboard" id="reportView" hidden>
+        <section class="control-strip" aria-label="Report controls">
+          <label class="field compact wide">
+            <span>대상자</span>
+            <select id="seniorSelect"></select>
+          </label>
+          <span class="risk-badge" id="riskBadge">-</span>
+          <span class="demo-disclaimer">※ 가상의 데모 데이터입니다</span>
+        </section>
+
+        <section class="metric-grid" aria-label="Report metrics">
+          <article class="metric">
+            <span>낙상 위험 점수</span>
+            <strong id="repRisk">0</strong>
+          </article>
+          <article class="metric">
+            <span>평균 케이던스</span>
+            <strong><b id="repCadence">0</b><small>spm</small></strong>
+          </article>
+          <article class="metric">
+            <span>좌우 비대칭</span>
+            <strong><b id="repAsym">0</b><small>%</small></strong>
+          </article>
+          <article class="metric">
+            <span>마지막 동기화</span>
+            <strong id="repSync">-</strong>
+          </article>
+        </section>
+
+        <section class="live-area">
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <h2>주간 걸음수 &amp; 낙상위험 추이</h2>
+              <span>최근 7일</span>
+            </div>
+            <canvas id="trendCanvas" width="1100" height="300"></canvas>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h2>케어 알림</h2>
+              <span id="alertCount">0건</span>
+            </div>
+            <ul class="alert-list" id="alertList"></ul>
+          </article>
+
+          <article class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-head">
+              <h2>센터 현황 (전체 대상자)</h2>
+              <span>가상 데이터 5명</span>
+            </div>
+            <table class="senior-table" id="seniorTable">
+              <thead>
+                <tr><th>이름</th><th>나이</th><th>소속</th><th>위험도</th><th>오늘 걸음수</th><th>동기화</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./mock-data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

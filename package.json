@@ -1,0 +1,13 @@
+{
+  "name": "stepcare-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StepCare - 16채널(8ch x 2) 스마트 인솔 기반 시니어 낙상예방·보행분석 데모 웹앱 (Firebase Hosting 배포용)",
+  "scripts": {
+    "start": "npx serve public -l 5000",
+    "deploy": "firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
